@@ -245,6 +245,11 @@ public:
 
 		// get() them, then use putback()
 
+		std::stringstream trystream;
+		for(int count = 0; count < literal_to_match.length(); count++)
+			trystream.put(parse_stream.get());
+			
+
 		if(index_of_literal == match_start_index)
 			return new result_token(text);
 		else
