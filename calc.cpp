@@ -20,9 +20,8 @@ int main(int argc, char **argv)
 {
 	string user_input;
 
-	grammarspec::stringliteral ohai_literal("ohai");
-	grammarspec::stringliteral world_literal("world");
-	grammarspec::op_morethan   morethan(&ohai_literal, 1);
+	grammarspec::elements::literal ohai_literal("ohai");
+	vector<grammarspec::results::result*> *presults;
 
 	//Main interaction loop: prompt,read,eval
 	while(true)
@@ -30,12 +29,9 @@ int main(int argc, char **argv)
 		cout << "calc>";
 		getline(cin, user_input);
 
-		int match_start_index = 0;
-		int match_finish_index = 0;
-		match_finish_index = morethan.match(user_input, match_start_index);
-		
-		if(match_finish_index != match_start_index)
-			cout << "String matched!" << endl;
+		presults = ohai_literal.match(cin);
+		cout << "Matched " << presults->size() << " tokens." << endl;
+		delete presults;
 	}
 
 	return 0;
