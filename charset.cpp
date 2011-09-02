@@ -17,30 +17,39 @@ charset::charset(const std::set<char> &in_chars_to_match, const int in_n)
 	
 }
 
+charset::charset(const std::string &in_string, const int in_n)
+:
+	chars_to_match(in_string.begin(), in_string.end()),
+	n(in_n)
+{
+	
+}
+
 std::list<results::result*>* charset::match(
-	const std::istream &parse_stream,
+	      std::istream &parse_stream,
 	const bool          ignore_whitespace
 ) const
 {
 	if(ignore_whitespace)
 		whitespace::munch_whitespace(parse_stream);
 	
+	//We need the local copy of n to allow multiple threads to execute
+	//this code at once.
 	std::stringstream matched_stream;
+	int               n_localcopy(n);
 	
-	//To be thread-safe, we should make a local copy of n to modify
-	
-	bool continue_matching = (n != 0);
-	while(continue_matching)
+	bool continue_matching = (n_localcopy != 0);
+	while(continue_matching && parse_stream.good())
 	{
-		if(n > 0)
+		if(n_localcopy > 0)
 		{
-			n--;
-			if(n==0)
+			n_localcopy--;
+			if(n_localcopy==0)
 				continue_matching = false;
 		}
 		
 		char c = parse_stream.peek();
-		if(chars_to_match.find(c) != std::set<char>::end)
+		if(chars_to_match.find(c) != chars_to_match.end())
 		{
 			parse_stream.get();
 			matched_stream.put(c);
@@ -53,7 +62,7 @@ std::list<results::result*>* charset::match(
 	new std::list<results::result*>;
 	
 	if(matched_stream.str().length() != 0)
-		return_list->push_back(matched_stream.str());
+		return_list->push_back(new results::token(matched_stream.str()));
 	
 	return return_list;
 }

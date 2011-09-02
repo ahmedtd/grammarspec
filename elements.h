@@ -9,6 +9,9 @@
 
 #include "results.h"
 
+//TODO implement binary function matching and integer/float matching, and
+//we'll be good to go on the calculator
+
 namespace grammarspec
 {
 namespace elements
@@ -29,8 +32,8 @@ public:
 	//results may be instances of results::list, which explicitly introduces
 	//nesting into the hierarchy)
 	virtual std::list<results::result*>* match(
-		const std::istream &parse_stream,
-	    const bool ignore_whitespace = true
+		      std::istream &parse_stream,
+	    const bool          ignore_whitespace = true
 	) const = 0;
 };
 
@@ -81,10 +84,11 @@ class charset : public element
 {
 public:
 	charset(const std::set<char> &in_chars_to_match, const int in_n = -1);
+	charset(const std::string &in_string, const int in_n = -1);
 
 	//The istream should not be const
 	virtual std::list<results::result*>* match(
-		const std::istream &parse_stream,
+		      std::istream &parse_stream,
 	    const bool          ignore_whitespace = true
 	    ) const;
 private:
@@ -98,7 +102,7 @@ public:
 	whitespace();
 
 	//Convenience function to strip whitepsace from the head of the stream
-	static void munch_whitespace(const std::istream &parse_stream);
+	static void munch_whitespace(std::istream &parse_stream);
 };
 
 class literal : public element
@@ -110,8 +114,8 @@ public:
 	//pointer to a results::token object containing the token.  If a token is
 	//not matched, returns an empty std::list.
 	virtual std::list<results::result*>* match(
-		const std::istream &parse_stream,
-	    const bool ignore_whitespace = true
+		      std::istream &parse_stream,
+	    const bool          ignore_whitespace = true
 	    ) const;
 
 private:
