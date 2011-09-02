@@ -10,7 +10,7 @@
 #include "results.h"
 
 //TODO implement binary function matching and integer/float matching, and
-//we'll be good to go on the calculator
+//we'll be good to go on the calculator.  Also need op_morethan, op_or, op_and
 
 namespace grammarspec
 {
