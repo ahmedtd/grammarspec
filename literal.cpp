@@ -5,17 +5,16 @@ namespace grammarspec
 namespace elements
 {
 
-stringliteral::stringliteral(const std::string &in_literal_to_match,
-                             bool in_whitespace_allowed = true)
+literal::literal(const std::string &in_literal_to_match)
 :
 	literal_to_match(in_literal_to_match)
 {
 	
 }
 
-const virtual std::list<results::result*>* match(
+std::list<results::result*>* literal::match(
 	const std::istream &parse_stream,
-	const bool ignore_whitespace = true
+	const bool          ignore_whitespace
 ) const
 {
 	std::list<results::result*> *return_list =

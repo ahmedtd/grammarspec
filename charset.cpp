@@ -1,11 +1,15 @@
 #include "elements.h"
 
+#include <istream>
+#include <list>
+#include <set>
+
 namespace grammarspec
 {
 namespace elements
 {
 
-charset::charset(const std::set<char> &in_chars_to_match, int in_n = -1)
+charset::charset(const std::set<char> &in_chars_to_match, const int in_n)
 :
 	chars_to_match(in_chars_to_match),
 	n(in_n)
@@ -13,9 +17,9 @@ charset::charset(const std::set<char> &in_chars_to_match, int in_n = -1)
 	
 }
 
-const virtual std::list<results::result*>* charset::match(
+std::list<results::result*>* charset::match(
 	const std::istream &parse_stream,
-	const bool          ignore_whitespace = true
+	const bool          ignore_whitespace
 ) const
 {
 	if(ignore_whitespace)
@@ -36,7 +40,7 @@ const virtual std::list<results::result*>* charset::match(
 		}
 		
 		char c = parse_stream.peek();
-		if(chars_to_match.find(c) != set<char>::end)
+		if(chars_to_match.find(c) != std::set<char>::end)
 		{
 			parse_stream.get();
 			matched_stream.put(c);

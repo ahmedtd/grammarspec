@@ -28,7 +28,7 @@ public:
 	//paradigm is a flat vector of generic results. (Note that some of those
 	//results may be instances of results::list, which explicitly introduces
 	//nesting into the hierarchy)
-	const virtual std::list<results::result*>* match(
+	virtual std::list<results::result*>* match(
 		const std::istream &parse_stream,
 	    const bool ignore_whitespace = true
 	) const = 0;
@@ -80,9 +80,10 @@ public:
 class charset : public element
 {
 public:
-	charset(const std::set<char> &in_chars_to_match, int in_n = -1);
+	charset(const std::set<char> &in_chars_to_match, const int in_n = -1);
 
-	const virtual std::list<results::result*>* match(
+	//The istream should not be const
+	virtual std::list<results::result*>* match(
 		const std::istream &parse_stream,
 	    const bool          ignore_whitespace = true
 	    ) const;
@@ -103,19 +104,18 @@ public:
 class literal : public element
 {
 public:
-	stringliteral(const std::string &in_literal_to_match,
-	              bool in_whitespace_allowed = true);
+	literal(const std::string &in_literal_to_match);
 
 	//If the token is matched, returns a std::list of length 1, containing a
 	//pointer to a results::token object containing the token.  If a token is
 	//not matched, returns an empty std::list.
-	const virtual std::list<results::result*>* match(
+	virtual std::list<results::result*>* match(
 		const std::istream &parse_stream,
 	    const bool ignore_whitespace = true
 	    ) const;
 
 private:
-	std::string literal_to_match;
+	const std::string literal_to_match;
 };
 
 }

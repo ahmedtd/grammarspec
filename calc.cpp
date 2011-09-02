@@ -5,6 +5,9 @@
 //Taahir Ahmed
 //CSCE 315 Texas A&M University
 
+#include <list>
+using std::list
+
 #include <iostream>
 using std::cin;
 using std::cout;
@@ -15,13 +18,16 @@ using std::getline;
 using std::string;
 
 #include "grammarspec.h"
+using grammarspec::elements::literal;
+using grammarspec::results::result;
+using grammarspec::results::token;
 
 int main(int argc, char **argv)
 {
 	string user_input;
 
-	grammarspec::elements::literal ohai_literal("ohai");
-	vector<grammarspec::results::result*> *presults;
+	literal ohai_literal("ohai");
+	list<result*> *presults;
 
 	//Main interaction loop: prompt,read,eval
 	while(true)
