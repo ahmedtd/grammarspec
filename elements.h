@@ -75,61 +75,17 @@ public:
 // 	const element *element_to_match;
 // };
 
-class whitespace;
-
 //match up to n characters from chars_to_match
 //if n==-1, match any number of chars
 class charset : public element
 {
 public:
-	charset(const std::set<char> &in_chars_to_match, int in_n = -1)
-	:
-		chars_to_match(in_chars_to_match),
-		n(in_n)
-	{
-		
-	}
+	charset(const std::set<char> &in_chars_to_match, int in_n = -1);
 
 	const virtual std::list<results::result*>* match(
 		const std::istream &parse_stream,
 	    const bool          ignore_whitespace = true
-	    ) const
-	{
-		if(ignore_whitespace)
-			whitespace::munch_whitespace(parse_stream);
-
-		std::stringstream matched_stream;
-
-		//To be thread-safe, we should make a local copy of n to modify
-
-		bool continue_matching = (n != 0);
-		while(continue_matching)
-		{
-			if(n > 0)
-			{
-				n--;
-				if(n==0)
-					continue_matching = false;
-			}
-
-			char c = parse_stream.peek();
-			if(chars_to_match.find(c) != set<char>::end)
-			{
-				parse_stream.get();
-				matched_stream.put(c);
-			}
-			else
-				break;
-		}
-
-		std::list<results::result*> *return_list =
-			new std::list<results::result*>;
-
-		if(matched_stream.str().length() != 0)
-			return_list->push_back(matched_stream.str());
-		
-		return return_list;
-	}
+	    ) const;
 private:
 	const std::set<char> chars_to_match;
 	const int n;
@@ -138,37 +94,17 @@ private:
 class whitespace : public charset
 {
 public:
-	whitespace()
-	:
-		charset(" \t\n")
-	{
-		
-	}
+	whitespace();
 
 	//Convenience function to strip whitepsace from the head of the stream
-	static void munch_whitespace(const std::istream &parse_stream)
-	{
-		whitespace wmatch;
-		result_token *wmatch_result = wmatch.match(parse_stream, false);
-			//Be sure to disable munching whitespace in the call to match()
-			//Otherwise, we'll see infinite recursion as match() calls
-			//munch_whitespace() calls match() calls...
-
-		if(result != NULL)
-			delete wmatch_result; //We own the memory pertaining to results
-	}
+	static void munch_whitespace(const std::istream &parse_stream);
 };
 
 class literal : public element
 {
 public:
 	stringliteral(const std::string &in_literal_to_match,
-	              bool in_whitespace_allowed = true)
-	:
-		literal_to_match(in_literal_to_match)
-	{
-		
-	}
+	              bool in_whitespace_allowed = true);
 
 	//If the token is matched, returns a std::list of length 1, containing a
 	//pointer to a results::token object containing the token.  If a token is
@@ -176,37 +112,7 @@ public:
 	const virtual std::list<results::result*>* match(
 		const std::istream &parse_stream,
 	    const bool ignore_whitespace = true
-	    ) const
-	{
-		std::list<results::result*> *return_list =
-			new std::list<results::result*>;
-
-		if(ignore_whitespace)
-			whitespace::munch_whitespace(parse_stream);
-
-		std::stringstream trystream;
-		for(int count = 0; count < literal_to_match.length(); count++)
-			trystream.put(parse_stream.get());
-
-		std::string &trystring = trystream.str();
-
-		if(trystring.compare(literal_to_match) == 0)
-			return_list->push_back(new results::token(literal_to_match));
-		else
-		{
-			//Unwind the the characters that were read to detect the literal
-			std::string::reverse_iterator rit;
-			for(rit=trystring.rbegin(); rit != trystring.rend(); rit++)
-				parse_stream.putback(*rit);
-		}
-
-		// To be totally correct, we might unwind the whitespace we
-		// (optionally) matched upon entry to the function.  However, we
-		// have either matched no whitespace or we are ignoring it.  If we
-		// are ignoring it, then not replacing it is a victimless crime
-
-		return return_list;
-	}
+	    ) const;
 
 private:
 	std::string literal_to_match;

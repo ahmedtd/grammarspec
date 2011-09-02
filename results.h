@@ -57,7 +57,8 @@ public:
 	{
 		
 	}
-
+	
+	//Return the string that this token has matched.
 	const virtual std::string* matched_item() const
 	{
 		return &original;

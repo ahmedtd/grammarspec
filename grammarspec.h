@@ -5,7 +5,7 @@
 #ifndef GRAMMARSPEC
 #define GRAMMARSPEC
 
-#include "elements.h"
-#include "results.h"
+#include "elements/elements.h"
+#include "results/results.h"
 
 #endif
