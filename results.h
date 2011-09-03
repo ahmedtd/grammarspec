@@ -5,6 +5,9 @@
 #include <list>
 #include <string>
 
+//This system should be bidirectional: I should be able to put data into
+//results and "unparse" them onto a stream
+
 namespace grammarspec
 {
 namespace results
@@ -43,7 +46,6 @@ public:
 		return original;
 	}
 protected:
-
 	//The original substring corresponding to this result
 	const std::string original;
 };

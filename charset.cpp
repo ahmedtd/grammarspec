@@ -30,8 +30,15 @@ std::list<results::result*>* charset::match(
 	const bool          ignore_whitespace
 ) const
 {
+
+	//Conditionally match whitespace at head of stream
+	//Save the result in case we need to unmatch it
+	std::list<results::result*> *wmatch_result_list;
 	if(ignore_whitespace)
-		whitespace::munch_whitespace(parse_stream);
+	{
+		whitespace wmatch;
+		wmatch_result_list = wmatch.match(parse_stream, false);
+	}
 	
 	//We need the local copy of n to allow multiple threads to execute
 	//this code at once.
@@ -62,8 +69,28 @@ std::list<results::result*>* charset::match(
 	new std::list<results::result*>;
 	
 	if(matched_stream.str().length() != 0)
+	{
+		//Match success
 		return_list->push_back(new results::token(matched_stream.str()));
-	
+	}
+	else
+	{
+		//Match failure
+		//Rewind any whitespace we've taken
+		std::list<results::result*>::reverse_iterator
+			wmatch_rit(  wmatch_result->rbegin());
+		std::list<results::result*>::reverse_iterator
+			wmatch_rend( wmatch_result->rend()  );
+		for(; wmatch_rit != wmatch_rend; wmatch_rit++)
+		{
+			results::result *white_ = (wmatch_rit);
+			std::string::reverse_iterator string_rit((*wmatch_rit)->rbegin());
+
+			for(string_rit = ())
+		}
+	}
+		
+	delete wmatch_result;
 	return return_list;
 }
 
