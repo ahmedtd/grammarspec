@@ -34,16 +34,6 @@ class element
 {
 public:
 
-	/// \brief Constructor
-	///
-	/// Constructor
-	///
-	/// \param [in] implicit_whitespace
-	/// If true, then a call to match() will allow (but not require) whitespace
-	/// between its sub-elements.  This removes the necessity of manually
-	/// specifying whitespace in the element tree.
-	element(const bool &in_implicit_whitespace = true);
-
 	/// \brief Virtual destructor.
 	///
 	/// Virtual destructor.  Allows dispatching to the correct subclass
@@ -67,21 +57,6 @@ public:
 	/// calling delete on the pointer.
 	virtual data* match(std::istream &parse_stream) const = 0;
 
-	/// \brief Serialize given data into an ostream using this element tree
-	///
-	/// \param [in] tree_to_streamify
-	/// Data tree to serialize via this grammar.  The tree will not be modified
-	/// except possibly to cache string representations if the subclass feels
-	/// like implementing it.
-	///
-	/// \return
-	/// Pointer to a stringstream (NULL in case of failure, though every effort
-	/// should be made to make sure that the data subclasses reject invalid
-	/// data when it is put in, rather than waiting to fail on a call to
-	/// streamify).  The caller is responsible for calling delete on the
-	/// stringstream.
-	
-
 	/// \brief Abstract base class for parsed data
 	///
 	/// Abstract base class for parsed data.  Subclasses of data are welcome to
@@ -89,6 +64,17 @@ public:
 	/// parsing operation has its own data tree.  Once a stream has been parsed
 	/// into a data tree, the user may inspect it, modify it, and write it
 	/// back to a stream.
+	/// 
+	/// If a given piece of data is meant to be an aggregate, then it must
+	/// directly support that aggregate's interface.  For example, an
+	/// op_morethan IS-A std::list of data pointers.  Data elements
+	/// corresponding to base types (int, double, etc.) may show different
+	/// semantics.
+	///
+	/// Most subclasses of data will have two different constructors:
+	/// -# One to initialize from a string being parsed
+	/// -# One from the correct sort of program data, e.g. a 
+	///    grammarspec::double::data from a double.
 	class data
 	{
 	public:
@@ -99,14 +85,15 @@ public:
 		/// function table dispatching to the correct subclass destructor.
 		virtual ~data() = 0;
 
-		/// \brief Serialize data according to given grammarspec
+		/// \brief Serialize data according to given grammarspec. 
 		///
 		/// \param [in] grammar
 		/// Grammar with which to attempt to serialize this data.  This can be
 		/// different from the grammar with which this data is read.  For
 		/// example, one could parse a list of numbers with a grammar that
 		/// specifies a python list format and serialize the list with a
-		/// grammar that specifies a csv list format.
+		/// grammar that specifies a csv list format.  THIS ARGUMENT IS IGNORED
+		/// FOR NOW.
 		/// 
 		/// \return
 		/// Pointer to a stringstream representation of the data (NULL in case
@@ -119,10 +106,44 @@ public:
 		///    a match failure.
 		/// -# It should adhere to the implicit_whitespace setting of its
 		///    corresponding element tree, within reason.
+		/// The caller is responsible for calling delete on the stringstream
 		virtual std::stringstream* streamify(const element &grammar) const = 0;
 
-
-		const virtual void* get_datarep() const = 0;;
+		/// \brief Serialize the data directly to a given stream.
+		///
+		/// \param [in] grammar
+		/// Grammar to use when attempting to serialize the data.  This
+		/// argument is ignored for now.
+		/// 
+		/// \param [in,out] outstream
+		/// Stream target for serialization.  If the serialization fails, then
+		/// the stream is unmodified.
+		/// 
+		/// \exception grammarspec::element::data::serialization_failure
+		/// Thrown in if the data cannot be serialized by the given grammar.
+		virtual void serialize_to_stream(const element      &grammar,
+		                                       std::ostream &outstream
+		                                 ) const = 0;
+		
+		/// \brief Unwind the data back onto the given istream.
+		///
+		/// Serialize this data and place it in reverse onto the head of the
+		/// specified istream.  This operation is useful in the case of match
+		/// failure at a higher level in the grammarspec tree.
+		///
+		/// \param [in] grammar
+		/// Grammar to use when attempting to serialize the data.  This
+		/// argument is ignored for now.
+		///
+		/// \param [in,out] instream
+		/// Stream target for serialization.  If the serialization fails, then
+		/// the stream is unmodified.
+		/// 
+		/// \exception grammarspec::element::data::serialization_failure
+		/// Thrown in if the data cannot be serialized by the given grammar.
+		virtual void unwind_to_stream(const element      &grammar,
+		                                    std::istream &instream
+		                              ) const = 0;
 	};
 };
 
@@ -148,59 +169,131 @@ public:
 // 	const element arg2;
 // };
 
-class op_morethan : public element
-{
-public:
-	morethan(const element &in_element_to_match, int n=0);
+// class op_morethan : public element
+// {
+// public:
+// 	morethan(const element &in_element_to_match, int n=0);
 
-	virtual std::list<results::result*>* match(
-		      std::istream &parse_stream,
-	    const bool          ignore_whitespace = true
-		) const;
+// 	virtual std::list<results::result*>* match(
+// 		      std::istream &parse_stream,
+// 	    const bool          ignore_whitespace = true
+// 		) const;
 
-private:
-	const element element_to_match;
-	const int n;
-};
+// private:
+// 	const element element_to_match;
+// 	const int n;
+// };
 
-//match up to n characters from chars_to_match
-//if n==-1, match any number of chars
-class charset : public element
-{
-public:
-	charset(const std::set<char> &in_chars_to_match, const int in_n = -1);
-	charset(const std::string &in_string, const int in_n = -1);
+// //match up to n characters from chars_to_match
+// //if n==-1, match any number of chars
+// class charset : public element
+// {
+// public:
+// 	charset(const std::set<char> &in_chars_to_match, const int in_n = -1);
+// 	charset(const std::string &in_string, const int in_n = -1);
 
-	virtual std::list<results::result*>* match(
-		      std::istream &parse_stream,
-	    const bool          ignore_whitespace = true
-	    ) const;
-private:
-	const std::set<char> chars_to_match;
-	const int n;
-};
+// 	virtual std::list<results::result*>* match(
+// 		      std::istream &parse_stream,
+// 	    const bool          ignore_whitespace = true
+// 	    ) const;
+// private:
+// 	const std::set<char> chars_to_match;
+// 	const int n;
+// };
 
-class whitespace : public charset
-{
-public:
-	whitespace();
-};
+// class whitespace : public charset
+// {
+// public:
+// 	whitespace();
+// };
 
+/// \brief A parse element that matches a string literal
+///
+/// A parse element that matched a string literal.  Because literals do not
+/// often contain interesting data, a given grammar specification will
+/// probably want to wrap literals in an op_noreport to avoid cluttering the
+/// data that is returned.
+///
+/// At least for now, literal is a parse atom (a leaf of any parse tree that
+/// it is in).  In theory, it could be made up of individual character atoms,
+/// but that's a bit ridiculous.  The (very small) downside of having a string
+/// literal be a parse atom is that the range of grammars used to serialize a
+/// literal will only be able to wrap things around the literal, not modify
+/// the literal itself by (for example) spacing out the individual characters.
 class literal : public element
 {
 public:
+
+	/// \brief Construct a literal that matches the given string.
+	///
+	/// \param [in] in_literal_to_match
+	/// The string that this literal parsing element should match against.
 	literal(const std::string &in_literal_to_match);
 
-	//If the token is matched, returns a std::list of length 1, containing a
-	//pointer to a results::token object containing the token.  If a token is
-	//not matched, returns an empty std::list.
-	virtual std::list<results::result*>* match(
-		      std::istream &parse_stream,
-	    const bool          ignore_whitespace = true
-	    ) const;
+	/// \brief Attempt to match this literal from the head of the given stream.
+	///
+	/// \param [in,out] parse_stream
+	/// Stream to match this literal from.  If the match succeeds, the matching
+	/// characters will be removed from the head of the stream.  If the match
+	/// fails, there will be no change in the characters of the stream.
+	///
+	/// \return
+	/// A pointer to a grammarspec::literal::data object, which can be used as
+	/// a pointer to a std::string object.  The caller is responsible for
+	/// calling delete on the data.
+	virtual data* match(std::istream &parse_stream) const;
 
 private:
 	const std::string literal_to_match;
+
+public:
+	class data
+	:
+		public element::data,
+		public std::string
+	{
+	public:
+
+		/// \brief Deinitialize this data object.
+		///
+		/// Deinitialize this data object.  Doesn't need to do anything except
+		/// properly dispatch to the std::string destructor.
+		virtual ~data();
+
+		/// \brief Serialize this literal::data object into a stream.
+		///
+		/// Serialize this data object into a stream.  See
+		/// \ref element::data::streamify(const element &grammar) const
+		/// for more info.
+		///
+		/// \param [in] grammar
+		/// Eventually, this will be any grammar that contains one
+		/// grammarspec::literal with the same string as this data.  This will
+		/// be useful, if, for example, one wants to surround all literals with
+		/// quotes.  For now, it's ignored, and this literal is simply directly
+		/// serialized
+		virtual std::stringstream* streamify(const element &grammar) const = 0;
+
+		/// \brief Serialize this literal::data directly to an ostream.
+		///
+		/// Serialize this literal::data directly to an ostream.  See
+		/// \ref element::data::serialize_to_stream() and
+		/// \ref literal::data::streamify()
+		/// for more info on return types and behavior of parameters.
+		virtual void serialize_to_stream(const element      &grammar,
+		                                       std::ostream &outstream
+		                                 ) const = 0;
+
+		/// \brief Unwind this literal::data back on to the given istream.
+		///
+		/// Unwind this literal::data back on to the given istream.  See
+		/// \ref element::data::unwind_to_stream() and
+		/// \ref literal::data::streamify()
+		/// for more info on return types and behavior of parameters.
+		virtual void unwind_to_stream(const element      &grammar,
+		                                    std::istream &instream
+		                              ) const = 0;
+	};
 };
 
 

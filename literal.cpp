@@ -1,8 +1,6 @@
-#include "elements.h"
+#include "grammarspec.h"
 
 namespace grammarspec
-{
-namespace elements
 {
 
 literal::literal(const std::string &in_literal_to_match)
@@ -50,5 +48,4 @@ std::list<results::result*>* literal::match(
 	return return_list;
 }
 	
-}
 }
