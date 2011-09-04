@@ -1,4 +1,12 @@
+/// \file literal.cpp
+/// Implementation file for \ref grammarspec::literal and
+/// \ref grammarspec::literal::data
+
 #include "grammarspec.h"
+
+#include <istream>
+#include <sstream>
+#include <string>
 
 namespace grammarspec
 {
@@ -10,17 +18,8 @@ literal::literal(const std::string &in_literal_to_match)
 	
 }
 
-std::list<results::result*>* literal::match(
-	      std::istream &parse_stream,
-	const bool          ignore_whitespace
-) const
-{
-	std::list<results::result*> *return_list =
-	new std::list<results::result*>;
-	
-	if(ignore_whitespace)
-		whitespace::munch_whitespace(parse_stream);
-	
+literal::data* literal::match(std::istream &parse_stream) const
+{	
 	std::stringstream trystream;
 	for(size_t count = 0; count < literal_to_match.length(); count++)
 		if(parse_stream.good())

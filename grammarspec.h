@@ -240,13 +240,18 @@ public:
 	/// \return
 	/// A pointer to a grammarspec::literal::data object, which can be used as
 	/// a pointer to a std::string object.  The caller is responsible for
-	/// calling delete on the data.
+	/// calling delete on the data.  NULL is returned if the match fails.
 	virtual data* match(std::istream &parse_stream) const;
 
 private:
+
 	const std::string literal_to_match;
 
 public:
+
+	/// \brief A data type corresponding to a literal parse element.
+	///
+	/// A data type corresponding to a literal parse element.  It IS-A string.
 	class data
 	:
 		public element::data,
